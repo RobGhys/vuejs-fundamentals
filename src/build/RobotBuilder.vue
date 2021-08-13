@@ -2,7 +2,10 @@
       <div class="content">
         <button class="add-to-cart" @click="addToCart()">Add to cart</button>
     <div class="top-row">
-      <div class="top part" :style="headBorderStyle">
+      <!-- Apply the :class if condition is met
+          With :class [c1, c2, ..., cn], we apply class style from left to right
+      -->
+      <div :class="[saleBorderClass, 'top', 'part']">
         <div class="robot-name">
           {{selectedRobot.head.title}} <!-- Shows Robot's name based on his head -->
           <!-- Shows "Sale!" in red if the head is on sale -->
@@ -63,6 +66,7 @@
 
 <script>
 import availableParts from '../data/parts';
+import createdHookMixin from './created-hook-mixin';
 
 /*
     Helper Functions
@@ -93,13 +97,20 @@ export default {
       selectBaseIndex: 0,
     };
   },
-  // Create a new selectedRobot object from which we get the current part to be displayed
+  // Create a mixin that can be reused in multiple components
+  mixins: [createdHookMixin],
   computed: {
+    // To display a red border if the head is on sale
+    saleBorderClass() {
+      return this.selectedRobot.head.onSale ? 'sale-border' : '';
+    },
+    // Not used anymore
     headBorderStyle() {
       return {
         border: this.selectedRobot.head.onSale ? '3px solid red' : '3px solid #aaa',
       };
     },
+    // Create a new selectedRobot object from which we get the current part to be displayed
     selectedRobot() {
       return {
         head: availableParts.heads[this.selectHeadIndex],

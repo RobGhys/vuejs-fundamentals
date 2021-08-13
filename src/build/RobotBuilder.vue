@@ -6,41 +6,38 @@
           With :class [c1, c2, ..., cn], we apply class style from left to right
       -->
       <div :class="[saleBorderClass, 'top', 'part']">
-        <div class="robot-name">
-          {{selectedRobot.head.title}} <!-- Shows Robot's name based on his head -->
-          <!-- Shows "Sale!" in red if the head is on sale -->
+        <!-- <div class="robot-name">
+          {{selectedRobot.head.title}} Shows Robot's name based on his head
+          Shows "Sale!" in red if the head is on sale
           <span v-if="selectedRobot.head.onSale" class="sale">
             Sale!
           </span>
-        </div>
-        <img :src="selectedRobot.head.src" title="head"/>
-        <button @click="selectPreviousHead()" class="prev-selector">&#9668;</button>
-        <button @click="selectNextHead()" class="next-selector">&#9658;</button>
+        </div> -->
+        <PartSelector
+          :parts="availableParts.heads"
+          position="top"
+        />
       </div>
     </div>
     <div class="middle-row">
-      <div class="left part">
-        <img v-bind:src="selectedRobot.leftArm.src" title="left arm"/>
-        <button v-on:click="selectPreviousLeftArm()" class="prev-selector">&#9650;</button>
-        <button v-on:click="selectNextLeftArm()" class="next-selector">&#9660;</button>
-      </div>
-      <div class="center part">
-        <img v-bind:src="selectedRobot.torso.src" title="left arm"/>
-        <button v-on:click="selectPreviousTorso()" class="prev-selector">&#9668;</button>
-        <button v-on:click="selectNextTorso()" class="next-selector">&#9658;</button>
-      </div>
-      <div class="right part">
-        <img v-bind:src="selectedRobot.rightArm.src" title="left arm"/>
-        <button v-on:click="selectPreviousRightArm()" class="prev-selector">&#9650;</button>
-        <button v-on:click="selectNextRightArm()" class="next-selector">&#9660;</button>
-      </div>
+      <PartSelector
+        :parts="availableParts.arms"
+        position="left"
+        />
+      <PartSelector
+        :parts="availableParts.torsos"
+        position="center"
+        />
+      <PartSelector
+        :parts="availableParts.arms"
+        position="right"
+        />
     </div>
     <div class="bottom-row">
-      <div class="bottom part">
-        <img v-bind:src="selectedRobot.base.src" title="left arm"/>
-        <button v-on:click="selectPreviousBase()" class="prev-selector">&#9668;</button>
-        <button v-on:click="selectNextBase()" class="next-selector">&#9658;</button>
-      </div>
+      <PartSelector
+        :parts="availableParts.bases"
+        position="bottom"
+        />
     </div>
     <div>
       <h1>Cart</h1>
@@ -67,34 +64,26 @@
 <script>
 import availableParts from '../data/parts';
 import createdHookMixin from './created-hook-mixin';
-
-/*
-    Helper Functions
- */
-function getPreviousValidIndex(index, length) {
-  const deprecatedIndex = index - 1;
-  return deprecatedIndex < 0 ? length - 1 : deprecatedIndex;
-}
-
-function getNextValidIndex(index, length) {
-  const incrementedIndex = index + 1;
-  return incrementedIndex > length - 1 ? 0 : incrementedIndex;
-}
+import PartSelector from './PartSelector.vue';
 
 /*
   Components
 */
 export default {
   name: 'RobotBuilder',
+  components: { PartSelector },
   data() {
     return {
       availableParts,
       cart: [],
-      selectHeadIndex: 0,
-      selectLeftArmIndex: 0,
-      selectTorsoIndex: 0,
-      selectRightArmIndex: 0,
-      selectBaseIndex: 0,
+      // Create a new selectedRobot object from which we get the current part to be displayed
+      selectedRobot: {
+        head: {},
+        leftArm: {},
+        torso: {},
+        rightArm: {},
+        base: {},
+      },
     };
   },
   // Create a mixin that can be reused in multiple components
@@ -110,16 +99,6 @@ export default {
         border: this.selectedRobot.head.onSale ? '3px solid red' : '3px solid #aaa',
       };
     },
-    // Create a new selectedRobot object from which we get the current part to be displayed
-    selectedRobot() {
-      return {
-        head: availableParts.heads[this.selectHeadIndex],
-        leftArm: availableParts.arms[this.selectLeftArmIndex],
-        torso: availableParts.torsos[this.selectTorsoIndex],
-        rightArm: availableParts.arms[this.selectRightArmIndex],
-        base: availableParts.bases[this.selectBaseIndex],
-      };
-    },
   },
   // Methods to switch to previous/next robot parts
   methods: {
@@ -128,54 +107,6 @@ export default {
       const cost = robot.head.cost + robot.leftArm.cost
       + robot.torso.cost + robot.rightArm.cost + robot.base.cost;
       this.cart.push({ ...robot, cost });
-    },
-    selectNextHead() {
-      this.selectHeadIndex = getNextValidIndex(this.selectHeadIndex, availableParts.heads.length);
-    },
-    selectPreviousHead() {
-      this.selectHeadIndex = getPreviousValidIndex(
-        this.selectHeadIndex, availableParts.heads.length,
-      );
-    },
-    selectNextLeftArm() {
-      this.selectLeftArmIndex = getNextValidIndex(
-        this.selectLeftArmIndex, availableParts.arms.length,
-      );
-    },
-    selectPreviousLeftArm() {
-      this.selectLeftArmIndex = getPreviousValidIndex(
-        this.selectLeftArmIndex, availableParts.heads.length,
-      );
-    },
-    selectNextTorso() {
-      this.selectTorsoIndex = getNextValidIndex(
-        this.selectTorsoIndex, availableParts.torsos.length,
-      );
-    },
-    selectPreviousTorso() {
-      this.selectTorsoIndex = getPreviousValidIndex(
-        this.selectTorsoIndex, availableParts.torsos.length,
-      );
-    },
-    selectNextRightArm() {
-      this.selectRightArmIndex = getNextValidIndex(
-        this.selectRightArmIndex, availableParts.arms.length,
-      );
-    },
-    selectPreviousRightArm() {
-      this.selectRightArmIndex = getPreviousValidIndex(
-        this.selectRightArmIndex, availableParts.heads.length,
-      );
-    },
-    selectNextBase() {
-      this.selectBaseIndex = getNextValidIndex(
-        this.selectBaseIndex, availableParts.bases.length,
-      );
-    },
-    selectPreviousBase() {
-      this.selectBaseIndex = getPreviousValidIndex(
-        this.selectBaseIndex, availableParts.bases.length,
-      );
     },
   },
 };
